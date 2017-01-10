@@ -8,8 +8,10 @@ import pylab as m
 import matplotlib.colors as mcolors
 from matplotlib.colors import colorConverter
 import matplotlib as mpl
-#import cartopy.crs as ccrs
+import cartopy.crs as ccrs
 import matplotlib.cm as cm
+
+massClass=[8.8e7,4.1e8,3.3e9,1.8e10,3.8e10,7.5e10,1.2e11,2.2e11,3.9e11,7.4e11] #Mass of ten mass clases by default in NEMO/ICB
 
 def extractIcbPath(icb,path):
     trajFiles=glob.glob(path+'*.nc')
@@ -22,14 +24,14 @@ def extractIcbPath(icb,path):
     dt = []
     for j in trajFiles:
         ncfile = netCDF4.Dataset(j,'a')
-        ids = np.array(ncfile.variables['iceberg_number'][:,:])
-        lonVal = np.array(ncfile.variables['lon'][:])
-        latVal = np.array(ncfile.variables['lat'][:])
-        #ThickVal = np.array(ncfile.variables['thickness'][:])
-        #LenVal = np.array(ncfile.variables['length'][:])
-        #WidVal = np.array(ncfile.variables['width'][:])
-        #MassVal = np.array(ncfile.variables['mass_scaling'][:])
-        ts = np.array(ncfile.variables['timestep'][:])
+        ids = np.array(ncfile.variables['iceberg_number'])[:,:]
+        lonVal = np.array(ncfile.variables['lon'])[:]
+        latVal = np.array(ncfile.variables['lat'])[:]
+        #ThickVal = np.array(ncfile.variables['thickness'])[:]
+        #LenVal = np.array(ncfile.variables['length'])[:]
+        #WidVal = np.array(ncfile.variables['width'])[:]
+        #MassVal = np.array(ncfile.variables['mass_scaling'])[:]
+        ts = np.array(ncfile.variables['timestep'])[:]
         arrDetect = ids - icb
         index=np.where(arrDetect[:,0]==0)
         
@@ -53,14 +55,14 @@ def extractIcbPathFromClassFile(icb,path):
     mass=[]
     dt = []
     ncfile = netCDF4.Dataset(path,'a')
-    ids = np.array(ncfile.variables['iceberg_number'][:,:])
-    lonVal = np.array(ncfile.variables['lon'][:])
-    latVal = np.array(ncfile.variables['lat'][:])
-    #ThickVal = np.array(ncfile.variables['thickness'][:])
-    #LenVal = np.array(ncfile.variables['length'][:])
-    #WidVal = np.array(ncfile.variables['width'][:])
-    #MassVal = np.array(ncfile.variables['mass_scaling'][:])
-    ts = np.array(ncfile.variables['timestep'][:])
+    ids = np.array(ncfile.variables['iceberg_number'])[:,:]
+    lonVal = np.array(ncfile.variables['lon'])[:]
+    latVal = np.array(ncfile.variables['lat'])[:]
+    #ThickVal = np.array(ncfile.variables['thickness'])[:]
+    #LenVal = np.array(ncfile.variables['length'])[:]
+    #WidVal = np.array(ncfile.variables['width'])[:]
+    #MassVal = np.array(ncfile.variables['mass_scaling'])[:]
+    ts = np.array(ncfile.variables['timestep'])[:]
     arrDetect = ids - icb
     index=np.where(arrDetect[:,0]==0)
     lon=lonVal[index]
@@ -71,7 +73,6 @@ def extractIcbPathFromClassFile(icb,path):
     #thickness=ThickVal[index]
     dt=ts[index]
     ncfile.close()
-    print 'done'
         
     return lon,lat,dt
     #return lon,lat,mass,width,length,thickness,dt
@@ -92,8 +93,7 @@ def IcbExist(icb,path):
 
 def IcbInFile(icb,path):
     ncfile = netCDF4.Dataset(path,'a')
-    print ncfile
-    ids = np.array(ncfile.variables['iceberg_number'][:,:])
+    ids = np.array(ncfile.variables['iceberg_number'])[:,:]
     arrDetect = abs(ids - icb)
     index=np.where(arrDetect[:,0]==0)
     ncfile.close()
@@ -103,15 +103,13 @@ def IcbInFile(icb,path):
         return False,0
  
 def getIcbClass(icb,fileList):
-    
-    massClass=[8.8e7,4.1e8,3.3e9,1.8e10,3.8e10,7.5e10,1.2e11,2.2e11,3.9e11,7.4e11]
-    
+        
     mass=[]
     
     for j in fileList:
         ncfile = netCDF4.Dataset(j,'a')
-        ids = np.array(ncfile.variables['iceberg_number'][:,:])
-        massVal = np.array(ncfile.variables['mass'][:])
+        ids = np.array(ncfile.variables['iceberg_number'])[:,:]
+        massVal = np.array(ncfile.variables['mass'])[:]
         arrDetect = ids - icb
         index=np.where(arrDetect[:,0]==0)
         temp = massVal[index[0][0]]
@@ -126,7 +124,6 @@ def getIcbClass(icb,fileList):
     
 def createIcbFile(filename):
 
-    print filename
 
     ncfile = netCDF4.Dataset(filename,'w',format='NETCDF4') 
 
@@ -192,11 +189,7 @@ def saveIcbByClass(classFile,classN,path,nProcs):
                     icbCount=icbCount+1
             else:
                 break
-        
-        print procNum
-        if procNum > 70:
-            print 'break'
-            break
+    
             
             
     ncfile.close()
@@ -222,7 +215,6 @@ def rangeIcbByClass(classFilespath,path,nProcs):
             icb = np.array([procNum + nProcs*counter,0,0]) #Id of icebergs having been launched from the corresponding processor of the current file
             res,fileList=IcbExist(icb,path) #Does iceberg icb exist? and where?
             res2,icbClass,nIcb=icbInClassFiles(classFilespath,icb) #Does icb exist in any of the "Class Files"
-            print 'print1',icb,res,res2
             counter=counter+1
             icbCount=0
             if res:
@@ -341,7 +333,6 @@ def rangeIcbByClassInitial(classFilespath,path,nProcs):
 #            
 def rangeIcbByClassFromList(lista,classFilespath,path,nProcs):
     trajFiles=glob.glob(path+'*.nc')
-    print 'hola',trajFiles
     for icbFile in trajFiles:
         procNum = int(icbFile[len(icbFile)-7:len(icbFile)-3]) + 1
         if procNum>nProcs/2:
@@ -388,7 +379,7 @@ def rangeIcbByClassFromList(lista,classFilespath,path,nProcs):
                 print 'no iceberg', icb
                 break
                 
-#rangeIcbByClassFromList(classFilespath,path,nProcs)
+#rangeIcbByClassBetweenList(classFilespath,path,nProcs)
 #    Range individual iceberg data from the raw output files from NEMO-ICB module to a list of 'Class Files'
 #       Only considered icebergs ids between the id sspecified between list1 and list2
 #       'Class Files' need to be named as icebergsTrayectoryClass+ClassNumber+.nc
@@ -402,7 +393,6 @@ def rangeIcbByClassFromList(lista,classFilespath,path,nProcs):
 #            
 def rangeIcbByClassBetweenList(list1,list2,classFilespath,path,nProcs):
     trajFiles=glob.glob(path+'*.nc')
-    print 'hola',trajFiles
     for icbFile in trajFiles:
         procNum = int(icbFile[len(icbFile)-7:len(icbFile)-3]) + 1
         if procNum>nProcs/2:
@@ -489,6 +479,8 @@ def createTrayectoryClassFiles(path,classN):
     print 'file: ',pathNewFile, 'created'
     return pathNewFile
     
+    
+    
 def plotTrayectoryClass(fileName,ax):
     ncfile = netCDF4.Dataset(fileName,'a')
     lonVar= np.array(ncfile.variables['lon'])[:,:]
@@ -509,15 +501,13 @@ def plotTrayectoryClass(fileName,ax):
         lon=lonVar[i,index]
         ts=tsVar[i,index]
         ids=icbNumVar[i]
-        print 'ids',ids
         #revisa construccion de T
-        print ts
-        print m.to_rgba(ts)
         process=np.mod(ids[0],256)
         #if process==6:
             #ax.scatter(lon,lat,m.to_rgba(ts),cmap=cmap,transform=ccrs.Geodetic(),alpha=1.)
-        ax.scatter(lon,lat,c=ts,cmap=cmap,vmin=15000,vmax=30000,edgecolors='None',transform=ccrs.Geodetic(),alpha=1.)
-        
+        ax.scatter(lon,lat,c=ts,cmap=cmap,vmin=15000,vmax=30000,edgecolors='None',transform=ccrs.PlateCarree(),alpha=1.)
+  
+              
 def plotTrayectoryClassByColor(fileName,ax,color,nProcs):
     ncfile = netCDF4.Dataset(fileName,'a')
     lonVar= np.array(ncfile.variables['lon'])[:,:]
@@ -534,11 +524,10 @@ def plotTrayectoryClassByColor(fileName,ax,color,nProcs):
         lon=lonVar[i,index]
         ts=tsVar[i,index]
         ids=icbNumVar[i]
-        print 'ids',ids
         process=np.mod(ids[0],nProcs)
         #if process==6:
             #ax.scatter(lon,lat,m.to_rgba(ts),cmap=cmap,transform=ccrs.Geodetic(),alpha=1.)
-        sct=ax.scatter(lon,lat,facecolor=color,vmin=15000,vmax=30000,edgecolors='None',transform=ccrs.Geodetic(),alpha=1, s=0.6)
+        sct=ax.scatter(lon,lat,facecolor=color,vmin=15000,vmax=30000,edgecolors='None',transform=ccrs.PlateCarree(),alpha=1, s=0.6)
     return sct
     
     
@@ -547,7 +536,6 @@ def lastIcbergPerProc(path,nProcs):
     list=np.zeros(nProcs,dtype=int)
     for f in files:
         proc = int(f[len(f)-7:len(f)-3]) + 1
-        print f,proc
         ncfile = netCDF4.Dataset(f,'a')
         tsVar= np.array(ncfile.variables['timestep'])[:]
         icbNumVar= np.array(ncfile.variables['iceberg_number'])[:]
