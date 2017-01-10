@@ -8,7 +8,7 @@ import pylab as m
 import matplotlib.colors as mcolors
 from matplotlib.colors import colorConverter
 import matplotlib as mpl
-import cartopy.crs as ccrs
+#import cartopy.crs as ccrs
 import matplotlib.cm as cm
 
 def extractIcbPath(icb,path):
@@ -92,6 +92,7 @@ def IcbExist(icb,path):
 
 def IcbInFile(icb,path):
     ncfile = netCDF4.Dataset(path,'a')
+    print ncfile
     ids = np.array(ncfile.variables['iceberg_number'][:,:])
     arrDetect = abs(ids - icb)
     index=np.where(arrDetect[:,0]==0)
@@ -124,6 +125,9 @@ def getIcbClass(icb,fileList):
     return classM+1
     
 def createIcbFile(filename):
+
+    print filename
+
     ncfile = netCDF4.Dataset(filename,'w',format='NETCDF4') 
 
     ncfile.createDimension('n')
